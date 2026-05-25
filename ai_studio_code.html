@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Type of Changemaker Are You?</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 { text-align: center; color: var(--primary); }
+        .progress-bar { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+
+        .hidden { display: none; }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover { border-color: var(--accent); background: #f0f8ff; }
+        .start-btn { background: var(--accent); color: white; text-align: center; font-weight: bold; border: none; }
+
+        .result-card { border-top: 5px solid var(--accent); padding-top: 20px; }
+        .result-header { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 10px; }
+        .result-desc { margin-bottom: 20px; font-style: italic; }
+        .result-list { padding-left: 20px; }
+        .result-list li { margin-bottom: 8px; }
+
+        .strengths {
+            background: #eef2f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Intro Screen -->
+    <div id="intro">
+        <h1>What Type of Changemaker Are You?</h1>
+        <p>Everybody notices problems, experiences school differently, and responds to challenges in their own way.</p>
+        <ul>
+            <li>Some people ask lots of questions.</li>
+            <li>Some jump into action.</li>
+            <li>Some bring people together.</li>
+            <li>Some notice when things feel unfair.</li>
+            <li>Some focus on helping people feel supported.</li>
+        </ul>
+        <p>This quiz is designed to help you think about the different ways people approach change, problem-solving, and understanding experiences. There are no “good” or “bad” types, and most people are a mix of several approaches.</p>
+        <button class="btn start-btn" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-container" class="hidden">
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <h3 id="question-text">Question goes here?</h3>
+        <div id="options-container"></div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="result" class="hidden">
+        <h1>Your Result: <span id="result-type"></span></h1>
+        <div class="result-card">
+            <p id="result-intro"></p>
+            <h3>You probably:</h3>
+            <ul id="result-probably" class="result-list"></ul>
+            <h3>How you create change:</h3>
+            <ul id="result-change" class="result-list"></ul>
+            <div class="strengths">
+                <strong>Inquiry Process Strengths:</strong>
+                <p id="result-strengths"></p>
+            </div>
+            <button class="btn start-btn" onclick="location.reload()" style="margin-top:30px;">Take Quiz Again</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "1. You never leave for school without:",
+            options: [
+                { text: "A playlist, podcast, book, or something interesting to think about", type: "Investigator" },
+                { text: "A random collection of supplies that might come in handy", type: "Builder" },
+                { text: "Your phone fully charged and ready to document everything", type: "Communicator" },
+                { text: "Texts from three different group chats already blowing up", type: "Networker" },
+                { text: "Snacks, gum, or something to share with friends", type: "Nurturer" },
+                { text: "A strong opinion about something annoying happening at school", type: "Resister" }
+            ]
+        },
+        {
+            q: "2. There’s a huge puddle in the middle of campus after it rains. Students keep stepping in it. You are most likely to:",
+            options: [
+                { text: "Wonder why it keeps happening every year", type: "Investigator" },
+                { text: "Start figuring out a way to fix or redesign the area", type: "Builder" },
+                { text: "Post a funny video or photo about it", type: "Communicator" },
+                { text: "Organize people to help solve the problem", type: "Networker" },
+                { text: "Warn people so nobody gets soaked", type: "Nurturer" },
+                { text: "Complain that the school has not fixed it yet", type: "Resister" }
+            ]
+        },
+        {
+            q: "3. Which words feel MOST connected to “making change”?",
+            options: [
+                { text: "Explore", type: "Investigator" },
+                { text: "Create", type: "Builder" },
+                { text: "Inspire", type: "Communicator" },
+                { text: "Collaborate", type: "Networker" },
+                { text: "Support", type: "Nurturer" },
+                { text: "Challenge", type: "Resister" }
+            ]
+        },
+        {
+            q: "4. Your advisory is planning a project to improve student experience at school. Your first instinct is:",
+            options: [
+                { text: "“We should find out what students actually think first.”", type: "Investigator" },
+                { text: "“I already have ideas for what we could make or change.”", type: "Builder" },
+                { text: "“We need a good way to spread the message.”", type: "Communicator" },
+                { text: "“Who should we bring together to work on this?”", type: "Networker" },
+                { text: "“Some students probably feel left out of this conversation.”", type: "Nurturer" },
+                { text: "“We should talk honestly about what is not working.”", type: "Resister" }
+            ]
+        },
+        {
+            q: "5. You are most likely to get frustrated in a group project when:",
+            options: [
+                { text: "Nobody slows down to really understand the problem", type: "Investigator" },
+                { text: "People keep talking and nobody starts building anything", type: "Builder" },
+                { text: "The group has good ideas but presents them badly", type: "Communicator" },
+                { text: "Communication completely falls apart", type: "Networker" },
+                { text: "People get ignored or talked over", type: "Nurturer" },
+                { text: "Everyone avoids the real issue", type: "Resister" }
+            ]
+        },
+        {
+            q: "6. Your friends would probably describe you as:",
+            options: [
+                { text: "Always asking questions or noticing things others miss", type: "Investigator" },
+                { text: "A real problem-solver", type: "Builder" },
+                { text: "Someone who knows how to get people excited", type: "Communicator" },
+                { text: "A connector who knows everybody", type: "Networker" },
+                { text: "Someone people feel comfortable talking to", type: "Nurturer" },
+                { text: "Someone who stands up when something feels unfair", type: "Resister" }
+            ]
+        },
+        {
+            q: "7. It’s a free Sunday afternoon. You are most likely:",
+            options: [
+                { text: "Watching videos, reading, or exploring something you’re suddenly curious about", type: "Investigator" },
+                { text: "Making, building, customizing, or creating something", type: "Builder" },
+                { text: "Posting, filming, editing, or sharing something online", type: "Communicator" },
+                { text: "Hanging out with lots of people or organizing plans", type: "Networker" },
+                { text: "Spending quality time with close friends or family", type: "Nurturer" },
+                { text: "Debating, ranting about, or researching something you think is wrong in the world", type: "Resister" }
+            ]
+        },
+        {
+            q: "8. A teacher suddenly changes the seating chart. Your brain immediately goes to:",
+            options: [
+                { text: "“I wonder why they changed it.”", type: "Investigator" },
+                { text: "“There’s probably a better setup than this.”", type: "Builder" },
+                { text: "“This is definitely going to create drama.”", type: "Communicator" },
+                { text: "“Okay wait who’s sitting with who now?”", type: "Networker" },
+                { text: "“Some people are going to feel really uncomfortable.”", type: "Nurturer" },
+                { text: "“Why do teachers care so much about where we sit?”", type: "Resister" }
+            ]
+        },
+        {
+            q: "9. During a class discussion, you naturally tend to:",
+            options: [
+                { text: "Ask follow-up questions", type: "Investigator" },
+                { text: "Suggest practical ideas or solutions", type: "Builder" },
+                { text: "Help explain ideas clearly", type: "Communicator" },
+                { text: "Build off what other people are saying", type: "Networker" },
+                { text: "Notice who has not spoken yet", type: "Nurturer" },
+                { text: "Push back when something does not feel right", type: "Resister" }
+            ]
+        },
+        {
+            q: "10. When you imagine making change in the future, you picture yourself:",
+            options: [
+                { text: "Investigating problems and asking important questions", type: "Investigator" },
+                { text: "Designing or creating something useful", type: "Builder" },
+                { text: "Using stories, media, or communication to influence people", type: "Communicator" },
+                { text: "Bringing people together around a goal", type: "Networker" },
+                { text: "Helping people feel supported and included", type: "Nurturer" },
+                { text: "Challenging unfair systems or speaking up for others", type: "Resister" }
+            ]
+        }
+    ];
+
+    const typeDetails = {
+        "Investigator": {
+            intro: "You notice things other people miss. Investigators are curious, thoughtful, and always trying to figure out what is really going on beneath the surface.",
+            probably: ["ask lots of questions", "notice patterns and contradictions", "like learning new things", "want the “full story” before jumping to conclusions"],
+            change: ["interviewing students or gathering survey data", "researching issues that matter to them", "exposing unfairness or hidden problems"],
+            strengths: "We Wonder, We Investigate, We Make Sense"
+        },
+        "Builder": {
+            intro: "Builders are hands-on changemakers. When Builders see a problem, they immediately start imagining ways to improve, redesign, or create something new.",
+            probably: ["enjoy making things", "like practical solutions", "get impatient when people only talk and never act", "think best by doing"],
+            change: ["designing apps, products, or systems", "improving spaces at school", "building models, prototypes, or solutions"],
+            strengths: "We Take Action, We Make Sense"
+        },
+        "Communicator": {
+            intro: "Communicators know how to make ideas heard. They are storytellers, presenters, creators, and people who know how to capture attention.",
+            probably: ["enjoy sharing ideas", "notice how messages affect people", "like speaking, filming, writing, or presenting", "enjoy helping ideas feel exciting"],
+            change: ["creating awareness campaigns", "designing posters, videos, or podcasts", "public speaking or presenting"],
+            strengths: "We Communicate, We Take Action"
+        },
+        "Networker": {
+            intro: "Networkers bring people together. They notice connections, build relationships, and help groups collaborate.",
+            probably: ["know lots of people", "enjoy teamwork", "connect ideas and people naturally", "think about who should be involved"],
+            change: ["organizing events or meetings", "connecting groups around a shared goal", "making sure people feel included"],
+            strengths: "We Investigate, We Communicate, We Take Action"
+        },
+        "Nurturer": {
+            intro: "Nurturers pay attention to people’s experiences and emotions. They notice when people feel left out, unheard, or unsupported.",
+            probably: ["care deeply about people", "notice how others are feeling", "want people to feel included", "listen carefully"],
+            change: ["supporting mental health or belonging", "mentoring or supporting others", "advocating for kindness and empathy"],
+            strengths: "We Reflect, We Wonder"
+        },
+        "Resister": {
+            intro: "Resisters challenge things that feel unfair, harmful, or dishonest. They are willing to speak up and question systems.",
+            probably: ["have strong opinions", "question rules or systems", "notice injustice quickly", "care about fairness and accountability"],
+            change: ["activism and advocacy", "protesting or raising awareness", "challenging unfair rules", "speaking up for those ignored"],
+            strengths: "We Wonder, We Communicate, We Take Action"
+        }
+    };
+
+    let currentQuestion = 0;
+    let scores = { Investigator: 0, Builder: 0, Communicator: 0, Networker: 0, Nurturer: 0, Resister: 0 };
+
+    function startQuiz() {
+        document.getElementById('intro').classList.add('hidden');
+        document.getElementById('quiz-container').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const qData = questions[currentQuestion];
+        document.getElementById('question-text').innerText = qData.q;
+        const optionsDiv = document.getElementById('options-container');
+        optionsDiv.innerHTML = '';
+        
+        qData.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(opt.type);
+            optionsDiv.appendChild(btn);
+        });
+
+        document.getElementById('progress').style.width = ((currentQuestion / questions.length) * 100) + '%';
+    }
+
+    function selectOption(type) {
+        scores[type]++;
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-container').classList.add('hidden');
+        document.getElementById('result').classList.remove('hidden');
+
+        // Find type with highest score
+        let winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+        const data = typeDetails[winner];
+
+        document.getElementById('result-type').innerText = winner;
+        document.getElementById('result-intro').innerText = data.intro;
+        document.getElementById('result-strengths').innerText = data.strengths;
+
+        const probList = document.getElementById('result-probably');
+        probList.innerHTML = data.probably.map(item => `<li>${item}</li>`).join('');
+
+        const changeList = document.getElementById('result-change');
+        changeList.innerHTML = data.change.map(item => `<li>${item}</li>`).join('');
+    }
+</script>
+
+</body>
+</html>
