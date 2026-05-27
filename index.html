@@ -85,6 +85,19 @@
         .result-section h3 { margin-top: 0; font-size: 18px; color: var(--primary); border-bottom: 2px solid #ddd; padding-bottom: 5px; }
         .result-list { padding-left: 20px; margin-bottom: 0; }
         .result-list li { margin-bottom: 8px; }
+        .field-group { text-align: left; margin-bottom: 16px; }
+        .field-group label { display: block; font-weight: bold; color: var(--primary); margin-bottom: 6px; }
+        .field-group input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .field-group input:focus { border-color: var(--accent); outline: none; }
+        .form-error { color: #c0392b; font-weight: bold; min-height: 20px; text-align: left; }
+        .submission-status { color: #667; font-size: 14px; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -111,6 +124,29 @@
         </div>
         
         <button class="btn start-btn" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <!-- Contact Screen -->
+    <div id="contact" class="hidden">
+        <h1>Before You Start</h1>
+        <div class="intro-content">
+            <p>Please share your name and/or email so your changemaker type can be saved after the quiz.</p>
+        </div>
+
+        <form id="contact-form" onsubmit="saveContactAndStart(event)">
+            <div class="field-group">
+                <label for="participant-name">Name</label>
+                <input id="participant-name" name="name" type="text" autocomplete="name">
+            </div>
+
+            <div class="field-group">
+                <label for="participant-email">Email</label>
+                <input id="participant-email" name="email" type="email" autocomplete="email">
+            </div>
+
+            <p id="contact-error" class="form-error"></p>
+            <button class="btn start-btn" type="submit">Continue</button>
+        </form>
     </div>
 
     <!-- Quiz Screen -->
@@ -145,11 +181,14 @@
             <p id="result-strengths" style="margin: 5px 0 0 0; font-weight: bold; color: var(--accent);"></p>
         </div>
 
+        <p id="submission-status" class="submission-status"></p>
         <button class="btn start-btn" onclick="location.reload()" style="background: #34495e; margin-top: 20px;">Take Quiz Again</button>
     </div>
 </div>
 
 <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/a/macros/nido.cl/s/AKfycbzEwU8OvpwdO3ZOEowkFWzjgvr6nEVl7H2JuYX09SZ8DMAGD3NcLNX87HtrmCaSQlmNMA/exec";
+
     const questions = [
         { q: "1. You never leave for school without:", img: "q1.png", options: [
             { text: "A playlist, podcast, book, or something interesting to think about", type: "Investigator" },
@@ -280,9 +319,28 @@
 
     let currentQuestion = 0;
     let scores = { Investigator: 0, Builder: 0, Communicator: 0, Networker: 0, Nurturer: 0, Resister: 0 };
+    let participant = { name: "", email: "" };
 
     function startQuiz() {
         document.getElementById('intro').classList.add('hidden');
+        document.getElementById('contact').classList.remove('hidden');
+    }
+
+    function saveContactAndStart(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('participant-name').value.trim();
+        const email = document.getElementById('participant-email').value.trim();
+        const error = document.getElementById('contact-error');
+
+        if (!name && !email) {
+            error.innerText = 'Please enter a name or email before continuing.';
+            return;
+        }
+
+        participant = { name, email };
+        error.innerText = '';
+        document.getElementById('contact').classList.add('hidden');
         document.getElementById('quiz-container').classList.remove('hidden');
         showQuestion();
     }
@@ -338,6 +396,40 @@
 
         document.getElementById('result-probably').innerHTML = data.probably.map(i => `<li>${i}</li>`).join('');
         document.getElementById('result-change').innerHTML = data.change.map(i => `<li>${i}</li>`).join('');
+        submitQuizResult(winner, data);
+    }
+
+    function submitQuizResult(winner, data) {
+        const status = document.getElementById('submission-status');
+
+        if (!GOOGLE_SCRIPT_URL) {
+            status.innerText = 'Result tracking is not connected yet.';
+            return;
+        }
+
+        const payload = new URLSearchParams({
+            name: participant.name,
+            email: participant.email,
+            type: winner,
+            investigatorScore: scores.Investigator,
+            builderScore: scores.Builder,
+            communicatorScore: scores.Communicator,
+            networkerScore: scores.Networker,
+            nurturerScore: scores.Nurturer,
+            resisterScore: scores.Resister,
+            strengths: data.strengths,
+            userAgent: navigator.userAgent
+        });
+
+        payload.set('_', Date.now());
+
+        const separator = GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?';
+        const trackingUrl = GOOGLE_SCRIPT_URL + separator + payload.toString();
+        const trackingImage = new Image();
+        trackingImage.src = trackingUrl;
+
+        status.innerText = 'Your result has been sent to the spreadsheet.';
+        status.title = trackingUrl;
     }
 </script>
 
