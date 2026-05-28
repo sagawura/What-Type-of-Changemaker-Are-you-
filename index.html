@@ -187,7 +187,7 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/a/macros/nido.cl/s/AKfycbzEwU8OvpwdO3ZOEowkFWzjgvr6nEVl7H2JuYX09SZ8DMAGD3NcLNX87HtrmCaSQlmNMA/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw8Gtb2xojSKAjFrM_mOgutcE9Ie247RcskLfxXULBUvA9a6ylmYC9WfG92_Kpk2UoS0A/exec";
 
     const questions = [
         { q: "1. You never leave for school without:", img: "q1.png", options: [
@@ -423,13 +423,22 @@
 
         payload.set('_', Date.now());
 
-        const separator = GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?';
-        const trackingUrl = GOOGLE_SCRIPT_URL + separator + payload.toString();
-        const trackingImage = new Image();
-        trackingImage.src = trackingUrl;
+        status.innerText = 'Sending your result to the spreadsheet...';
 
-        status.innerText = 'Your result has been sent to the spreadsheet.';
-        status.title = trackingUrl;
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            keepalive: true,
+            body: payload
+        }).catch(() => {
+            const separator = GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?';
+            const trackingUrl = GOOGLE_SCRIPT_URL + separator + payload.toString();
+            const trackingImage = new Image();
+            trackingImage.src = trackingUrl;
+            status.title = trackingUrl;
+        }).finally(() => {
+            status.innerText = 'Your result has been sent to the spreadsheet.';
+        });
     }
 </script>
 
